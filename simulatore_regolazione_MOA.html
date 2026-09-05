@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regolazione Torrette — Click MOA/MRAD</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a2332;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --muted: #8b9bb4;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --danger: #ef4444;
+      --success: #22c55e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem;
+      line-height: 1.5;
+    }
+
+    .wrap { max-width: 1080px; margin: 0 auto; }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 820px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.15rem;
+    }
+
+    .panel h2 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .field { margin-bottom: 1rem; }
+    .field:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 500;
+      margin-bottom: 0.35rem;
+    }
+
+    input[type=number] {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+
+    input[type=number]:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .distval {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.35rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .distval small { font-size: 0.8rem; font-weight: 500; color: var(--muted); }
+
+    .hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+      line-height: 1.4;
+    }
+
+    .seg {
+      display: flex;
+      gap: 0.35rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.25rem;
+    }
+
+    .seg button {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.45rem 0.35rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .seg button.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .reset-btn {
+      width: 100%;
+      margin-top: 0.75rem;
+      padding: 0.6rem;
+      background: transparent;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .reset-btn:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    .target-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .target-instructions {
+      font-size: 0.85rem;
+      color: var(--muted);
+      align-self: flex-start;
+    }
+
+    #targetSvg {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      background: #141c28;
+    }
+
+    .readout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      width: 100%;
+    }
+
+    .ro-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      text-align: center;
+    }
+
+    .ro-card.empty .val { color: var(--muted); }
+
+    .ro-card .lbl {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+    }
+
+    .ro-card .val {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ro-card .val .arrow {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .ro-card .sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      width: 100%;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .meta-row b { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Regolazione Torrette</h1>
+        <div class="subtitle">Calcolo click windage / elevation da errore di tiro · MOA · MRAD - <p style="color: orange; font-size: 12px;"> copyright © 2026 Autore: Francesco Maio. Tutti i diritti riservati.</p></div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>Parametri</h2>
+
+        <div class="field">
+          <label>Distanza</label>
+          <div class="distval" id="distLabel">100 <small>m</small></div>
+          <input type="range" id="distSlider" min="10" max="1000" step="5" value="100">
+        </div>
+
+        <div class="field">
+          <label>Diametro bersaglio</label>
+          <input type="number" id="targetDiam" value="30" min="1" step="1">
+          <div class="hint">cm — per convertire il clic sul disegno in distanza reale dal centro</div>
+        </div>
+
+        <div class="field">
+          <label>Unità torretta</label>
+          <div class="seg" id="unitSeg">
+            <button data-unit="moa" class="active">MOA</button>
+            <button data-unit="mrad">MRAD</button>
+          </div>
+        </div>
+
+        <div class="field" id="clickValueField">
+          <label>Valore per click</label>
+          <div class="seg" id="clickSeg"></div>
+        </div>
+
+        <div class="field">
+          <label>Scarto manuale (opzionale)</label>
+          <input type="number" id="manX" placeholder="orizzontale cm (+ = destra)" style="margin-bottom:0.5rem;">
+          <input type="number" id="manY" placeholder="verticale cm (+ = basso)">
+          <div class="hint">Oppure clicca sul bersaglio a destra per segnare il colpo.</div>
+        </div>
+
+        <button class="reset-btn" id="resetBtn">Reset completo</button>
+      </div>
+
+      <div class="panel target-panel">
+        <h2 style="align-self:flex-start;">Bersaglio</h2>
+        <div class="target-instructions">Clicca sul bersaglio nel punto in cui è arrivato il colpo</div>
+        <svg id="targetSvg" viewBox="0 0 420 420" width="420" height="420"></svg>
+
+        <div class="readout">
+          <div class="ro-card empty" id="cardWind">
+            <div class="lbl">Windage</div>
+            <div class="val">—</div>
+          </div>
+          <div class="ro-card empty" id="cardElev">
+            <div class="lbl">Elevation</div>
+            <div class="val">—</div>
+          </div>
+        </div>
+
+        <div class="meta-row">
+          <span>Scarto: <b id="metaOffset">—</b></span>
+          <span>Correzione: <b id="metaCorrection">—</b></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  const svg = document.getElementById('targetSvg');
+  const NS = 'http://www.w3.org/2000/svg';
+  const VB = 420;
+  const CENTER = VB / 2;
+  const R = 180;
+
+  let state = {
+    distance: 100,
+    targetDiamCm: 30,
+    unit: 'moa',
+    clickValue: 0.25,
+    shot: null
+  };
+
+  const CLICK_OPTIONS = {
+    moa: [0.125, 0.25, 0.5, 1],
+    mrad: [0.05, 0.1, 0.2, 0.5]
+  };
+
+  function buildTarget() {
+    svg.innerHTML = '';
+    const bg = document.createElementNS(NS, 'rect');
+    bg.setAttribute('width', VB);
+    bg.setAttribute('height', VB);
+    bg.setAttribute('fill', '#141c28');
+    svg.appendChild(bg);
+
+    const grid = document.createElementNS(NS, 'g');
+    for (let i = 1; i < 8; i++) {
+      const p = i * (VB / 8);
+      const l1 = document.createElementNS(NS, 'line');
+      l1.setAttribute('x1', p); l1.setAttribute('y1', 0);
+      l1.setAttribute('x2', p); l1.setAttribute('y2', VB);
+      l1.setAttribute('stroke', '#2d3a4f'); l1.setAttribute('stroke-width', '1');
+      const l2 = document.createElementNS(NS, 'line');
+      l2.setAttribute('x1', 0); l2.setAttribute('y1', p);
+      l2.setAttribute('x2', VB); l2.setAttribute('y2', p);
+      l2.setAttribute('stroke', '#2d3a4f'); l2.setAttribute('stroke-width', '1');
+      grid.appendChild(l1); grid.appendChild(l2);
+    }
+    svg.appendChild(grid);
+
+    for (let i = 4; i >= 1; i--) {
+      const c = document.createElementNS(NS, 'circle');
+      c.setAttribute('cx', CENTER); c.setAttribute('cy', CENTER);
+      c.setAttribute('r', R * (i / 4));
+      c.setAttribute('fill', i % 2 === 0 ? '#1a2332' : '#141c28');
+      c.setAttribute('stroke', '#2d3a4f');
+      c.setAttribute('stroke-width', '1.5');
+      svg.appendChild(c);
+    }
+
+    const bull = document.createElementNS(NS, 'circle');
+    bull.setAttribute('cx', CENTER); bull.setAttribute('cy', CENTER);
+    bull.setAttribute('r', 8);
+    bull.setAttribute('fill', '#3b82f6');
+    svg.appendChild(bull);
+
+    const chh = document.createElementNS(NS, 'line');
+    chh.setAttribute('x1', CENTER - 14); chh.setAttribute('y1', CENTER);
+    chh.setAttribute('x2', CENTER + 14); chh.setAttribute('y2', CENTER);
+    chh.setAttribute('stroke', '#e7ecf3'); chh.setAttribute('stroke-width', '1.5');
+    const chv = document.createElementNS(NS, 'line');
+    chv.setAttribute('x1', CENTER); chv.setAttribute('y1', CENTER - 14);
+    chv.setAttribute('x2', CENTER); chv.setAttribute('y2', CENTER + 14);
+    chv.setAttribute('stroke', '#e7ecf3'); chv.setAttribute('stroke-width', '1.5');
+    svg.appendChild(chh); svg.appendChild(chv);
+
+    const overlay = document.createElementNS(NS, 'rect');
+    overlay.setAttribute('width', VB); overlay.setAttribute('height', VB);
+    overlay.setAttribute('fill', 'transparent');
+    overlay.style.cursor = 'crosshair';
+    overlay.addEventListener('click', onTargetClick);
+    svg.appendChild(overlay);
+
+    if (state.shot) drawShot();
+  }
+
+  function pxToCm(pxOffset) {
+    return pxOffset * (state.targetDiamCm / 2) / R;
+  }
+
+  function cmToPx(cmOffset) {
+    return cmOffset * R / (state.targetDiamCm / 2);
+  }
+
+  function onTargetClick(evt) {
+    const rect = svg.getBoundingClientRect();
+    const scale = VB / rect.width;
+    const x = (evt.clientX - rect.left) * scale;
+    const y = (evt.clientY - rect.top) * scale;
+    state.shot = { xCm: pxToCm(x - CENTER), yCm: pxToCm(y - CENTER) };
+    syncManualInputs();
+    buildTarget();
+    compute();
+  }
+
+  function drawShot() {
+    const x = CENTER + cmToPx(state.shot.xCm);
+    const y = CENTER + cmToPx(state.shot.yCm);
+    const line = document.createElementNS(NS, 'line');
+    line.setAttribute('x1', CENTER); line.setAttribute('y1', CENTER);
+    line.setAttribute('x2', x); line.setAttribute('y2', y);
+    line.setAttribute('stroke', '#ef4444');
+    line.setAttribute('stroke-width', '1.5');
+    line.setAttribute('opacity', '0.85');
+    svg.appendChild(line);
+
+    const r = 8;
+    const l1 = document.createElementNS(NS, 'line');
+    l1.setAttribute('x1', x - r); l1.setAttribute('y1', y - r);
+    l1.setAttribute('x2', x + r); l1.setAttribute('y2', y + r);
+    const l2 = document.createElementNS(NS, 'line');
+    l2.setAttribute('x1', x - r); l2.setAttribute('y1', y + r);
+    l2.setAttribute('x2', x + r); l2.setAttribute('y2', y - r);
+    [l1, l2].forEach(l => {
+      l.setAttribute('stroke', '#ef4444');
+      l.setAttribute('stroke-width', '2.5');
+      l.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(l);
+    });
+  }
+
+  const distSlider = document.getElementById('distSlider');
+  const distLabel = document.getElementById('distLabel');
+  distSlider.addEventListener('input', () => {
+    state.distance = parseFloat(distSlider.value);
+    distLabel.innerHTML = `${state.distance} <small>m</small>`;
+    compute();
+  });
+
+  document.getElementById('targetDiam').addEventListener('input', () => {
+    const v = parseFloat(document.getElementById('targetDiam').value);
+    if (!isNaN(v) && v > 0) {
+      state.targetDiamCm = v;
+      buildTarget();
+      compute();
+    }
+  });
+
+  const unitSeg = document.getElementById('unitSeg');
+  unitSeg.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      unitSeg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.unit = btn.dataset.unit;
+      state.clickValue = CLICK_OPTIONS[state.unit][1];
+      buildClickSeg();
+      compute();
+    });
+  });
+
+  const clickSeg = document.getElementById('clickSeg');
+  function buildClickSeg() {
+    clickSeg.innerHTML = '';
+    CLICK_OPTIONS[state.unit].forEach(val => {
+      const b = document.createElement('button');
+      b.textContent = state.unit === 'moa' ? val + ' MOA' : val + ' MRAD';
+      if (val === state.clickValue) b.classList.add('active');
+      b.addEventListener('click', () => {
+        clickSeg.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        state.clickValue = val;
+        compute();
+      });
+      clickSeg.appendChild(b);
+    });
+  }
+
+  const manX = document.getElementById('manX');
+  const manY = document.getElementById('manY');
+  function syncManualInputs() {
+    if (state.shot) {
+      manX.value = state.shot.xCm.toFixed(2);
+      manY.value = state.shot.yCm.toFixed(2);
+    }
+  }
+  [manX, manY].forEach(inp => {
+    inp.addEventListener('input', () => {
+      const x = parseFloat(manX.value);
+      const y = parseFloat(manY.value);
+      if (!isNaN(x) && !isNaN(y)) {
+        state.shot = { xCm: x, yCm: y };
+        buildTarget();
+        compute();
+      }
+    });
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    // Ripristina tutti i parametri ai valori di default
+    state.distance = 100;
+    state.targetDiamCm = 30;
+    state.unit = 'moa';
+    state.clickValue = 0.25;
+    state.shot = null;
+
+    // Aggiorna controlli UI
+    distSlider.value = 100;
+    distLabel.innerHTML = '100 <small>m</small>';
+    document.getElementById('targetDiam').value = 30;
+    manX.value = '';
+    manY.value = '';
+
+    // Unità → MOA
+    unitSeg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    unitSeg.querySelector('button[data-unit="moa"]').classList.add('active');
+
+    // Valori click e ricostruzione segmenti
+    buildClickSeg();
+    buildTarget();
+    resetReadout();
+  });
+
+  // 1 MOA = 2.908 cm @ 100 m · 1 MRAD = 10 cm @ 100 m
+  function cmPerUnitAtDistance(unit, distanceM) {
+    const perHundred = unit === 'moa' ? 2.908 : 10;
+    return perHundred * (distanceM / 100);
+  }
+
+  const cardWind = document.getElementById('cardWind');
+  const cardElev = document.getElementById('cardElev');
+  const metaOffset = document.getElementById('metaOffset');
+  const metaCorrection = document.getElementById('metaCorrection');
+
+  function resetReadout() {
+    cardWind.classList.add('empty');
+    cardElev.classList.add('empty');
+    cardWind.querySelector('.val').textContent = '—';
+    cardElev.querySelector('.val').textContent = '—';
+    const sw = cardWind.querySelector('.sub'); if (sw) sw.remove();
+    const se = cardElev.querySelector('.sub'); if (se) se.remove();
+    metaOffset.textContent = '—';
+    metaCorrection.textContent = '—';
+  }
+
+  function compute() {
+    if (!state.shot) { resetReadout(); return; }
+    const cmPerUnit = cmPerUnitAtDistance(state.unit, state.distance);
+    const unitsX = state.shot.xCm / cmPerUnit;
+    const unitsY = state.shot.yCm / cmPerUnit;
+    const clicksX = Math.round(Math.abs(unitsX) / state.clickValue);
+    const clicksY = Math.round(Math.abs(unitsY) / state.clickValue);
+    const dirX = state.shot.xCm > 0 ? 'SINISTRA' : (state.shot.xCm < 0 ? 'DESTRA' : '—');
+    const dirY = state.shot.yCm > 0 ? 'ALTO' : (state.shot.yCm < 0 ? 'BASSO' : '—');
+
+    cardWind.classList.remove('empty');
+    cardElev.classList.remove('empty');
+    cardWind.querySelector('.val').innerHTML = clicksX === 0 ? '0' : `${clicksX} <span class="arrow">→ ${dirX}</span>`;
+    cardElev.querySelector('.val').innerHTML = clicksY === 0 ? '0' : `${clicksY} <span class="arrow">→ ${dirY}</span>`;
+    setSub(cardWind, `${Math.abs(unitsX).toFixed(2)} ${state.unit.toUpperCase()}`);
+    setSub(cardElev, `${Math.abs(unitsY).toFixed(2)} ${state.unit.toUpperCase()}`);
+    metaOffset.textContent = `${state.shot.xCm.toFixed(1)} cm orizz. / ${state.shot.yCm.toFixed(1)} cm vert. @ ${state.distance} m`;
+    metaCorrection.textContent = `${clicksX} click ${dirX.toLowerCase()} · ${clicksY} click ${dirY.toLowerCase()}`;
+  }
+
+  function setSub(card, text) {
+    let sub = card.querySelector('.sub');
+    if (!sub) {
+      sub = document.createElement('div');
+      sub.className = 'sub';
+      card.appendChild(sub);
+    }
+    sub.textContent = text;
+  }
+
+  buildTarget();
+  buildClickSeg();
+  resetReadout();
+})();
+</script>
+</body>
+</html>
